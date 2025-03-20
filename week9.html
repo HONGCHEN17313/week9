@@ -3246,7 +3246,7 @@ window.Quarto = {
 </section>
 <section id="binary-outcomes-1" class="level2">
 <h2 class="anchored" data-anchor-id="binary-outcomes-1">Binary Outcomes 1</h2>
-<p>Does having a college degree affect the age of first birth? We define late first birth as having a first child at age 30 or older. First, let’s create a dataset with binary variables for education and late birth.</p>
+<p>Does having a high school degree affect the age of first birth? We define late first birth as having a first child at age 30 or older. First, let’s create a dataset with binary variables for education and late birth.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>gss2018 <span class="ot">&lt;-</span> <span class="fu">gss_get_yr</span>(<span class="dv">2018</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -3255,13 +3255,13 @@ window.Quarto = {
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>firstkid <span class="ot">&lt;-</span> gss2018 <span class="sc">|&gt;</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(agekdbrn, educ) <span class="sc">|&gt;</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">latebirth =</span> <span class="fu">if_else</span>(agekdbrn <span class="sc">&gt;=</span> <span class="dv">30</span> , <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">college =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">12</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">degree =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">12</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Outcome: late first birth(Yes=1 / No=0)</p>
-<p>Predictor: having college degree(Yes=1 / No=0)</p>
+<p>Predictor: having high school degree(Yes=1 / No=0)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(firstkid<span class="sc">$</span>college, firstkid<span class="sc">$</span>latebirth)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(firstkid<span class="sc">$</span>degree, firstkid<span class="sc">$</span>latebirth)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   
        0    1
@@ -3269,30 +3269,34 @@ window.Quarto = {
   1 1128  292</code></pre>
 </div>
 </div>
-<p>P(latebirth|college) = 292/(1128+292) = 0.2056 P(latebirth|noncollege) = 20/(225+20) = 0.0816</p>
+<p>P(latebirth|degree) = 292/(1128+292) = 0.2056 P(latebirth|nondegree) = 20/(225+20) = 0.0816</p>
 <section id="difference-in-probability-regression" class="level3">
 <h3 class="anchored" data-anchor-id="difference-in-probability-regression">Difference in Probability Regression</h3>
-<p>Difference in Probability = P(latebirth|college) - P(latebirth|noncollege) = 0.2056 - 0.0816 = 0.1240</p>
+<p>Difference in Probability = P(latebirth|degree) - P(latebirth|nondegree) = 0.2056 - 0.0816 = 0.1240</p>
 <section id="model" class="level4">
 <h4 class="anchored" data-anchor-id="model">Model</h4>
 <p><span class="math display">\[
-P(\text{latebirth}=1)_i = \alpha + \beta(\text{college}_i)
-\]</span> #### Estimate in R</p>
+P(\text{latebirth}=1)_i = \alpha + \beta(\text{degree}_i)
+\]</span><br>
+</p>
+</section>
+<section id="estimate-in-r" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r">Estimate in R</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DP <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> college,</span>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DP <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> degree,</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> firstkid,</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>)) <span class="co">#this is for calculating the difference of probability of two groups</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(DP)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
-glm(formula = latebirth ~ college, family = binomial(link = &quot;identity&quot;), 
+glm(formula = latebirth ~ degree, family = binomial(link = &quot;identity&quot;), 
     data = firstkid)
 
 Coefficients:
             Estimate Std. Error z value Pr(&gt;|z|)    
 (Intercept)  0.08163    0.01749   4.667 3.06e-06 ***
-college      0.12400    0.02052   6.043 1.51e-09 ***
+degree       0.12400    0.02052   6.043 1.51e-09 ***
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
@@ -3306,8 +3310,8 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 </div>
 <p><span class="math display">\[
-P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
-\]</span> The estimated effect of college on late birth is 0.1240, meaning that having college degree increases the probability of late first birth by 12.4 percentage points.</p>
+P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{degree}
+\]</span> The estimated effect of high school on late birth is 0.1240, meaning that having high school degree increases the probability of late first birth by 12.4 percentage points.</p>
 </section>
 <section id="confidence-interval" class="level4">
 <h4 class="anchored" data-anchor-id="confidence-interval">Confidence Interval</h4>
@@ -3317,31 +3321,31 @@ P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
 <section id="risk-ratio-regression-risk-ratio" class="level3">
 <h3 class="anchored" data-anchor-id="risk-ratio-regression-risk-ratio">Risk Ratio Regression Risk ratio</h3>
 <p><span class="math display">\[
-RR = \frac{P(latebirth=1 | college=1)} {P(latebirth=1|college=0)}
+RR = \frac{P(latebirth=1 | degree=1)} {P(latebirth=1|degree=0)}
 \]</span> RR = 0.2056/0.0816 = 2.52</p>
 <section id="model-1" class="level4">
 <h4 class="anchored" data-anchor-id="model-1">Model</h4>
 <p><span class="math display">\[
-log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{college}_i)
+log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{degree}_i)
 \]</span></p>
 </section>
-<section id="estimate-in-r" class="level4">
-<h4 class="anchored" data-anchor-id="estimate-in-r">Estimate in R</h4>
+<section id="estimate-in-r-1" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-1">Estimate in R</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>RR <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> college,</span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>RR <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> degree,</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> firstkid,</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>))</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(RR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
-glm(formula = latebirth ~ college, family = binomial(link = &quot;log&quot;), 
+glm(formula = latebirth ~ degree, family = binomial(link = &quot;log&quot;), 
     data = firstkid)
 
 Coefficients:
             Estimate Std. Error z value Pr(&gt;|z|)    
 (Intercept)  -2.5055     0.2143 -11.693  &lt; 2e-16 ***
-college       0.9239     0.2205   4.189  2.8e-05 ***
+degree        0.9239     0.2205   4.189  2.8e-05 ***
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
@@ -3355,7 +3359,7 @@ Number of Fisher Scoring iterations: 6</code></pre>
 </div>
 </div>
 <p><span class="math display">\[
-log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
+log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*degree
 \]</span></p>
 </section>
 <section id="risk-ratio" class="level4">
@@ -3366,7 +3370,7 @@ log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
 <pre><code>[1] 2.519096</code></pre>
 </div>
 </div>
-<p>People with college degree are 2.52 times more likely to have late first birth compared to people with non-college degree.</p>
+<p>People with high school degree are 2.52 times more likely to have late first birth compared to people without high school degree.</p>
 </section>
 <section id="confidence-intervals" class="level4">
 <h4 class="anchored" data-anchor-id="confidence-intervals">Confidence Intervals</h4>
@@ -3405,8 +3409,8 @@ log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
 P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
 \]</span></p>
 </section>
-<section id="estimate-in-r-1" class="level4">
-<h4 class="anchored" data-anchor-id="estimate-in-r-1">Estimate in R</h4>
+<section id="estimate-in-r-2" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-2">Estimate in R</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>DP2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(degree <span class="sc">~</span> gender,</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> gendereduc,</span>
@@ -3490,8 +3494,8 @@ log(P(\text{degree}=1)_i) = \alpha + \beta(\text{gender}_i)
 P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
 \]</span></p>
 </section>
-<section id="estimate-in-r-2" class="level4">
-<h4 class="anchored" data-anchor-id="estimate-in-r-2">Estimate in R</h4>
+<section id="estimate-in-r-3" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-3">Estimate in R</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>DP3 <span class="ot">&lt;-</span> <span class="fu">glm</span>(college <span class="sc">~</span> gender,</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> collegeeduc,</span>
@@ -3537,8 +3541,8 @@ P(\text{college}=1) = 0.3300 - 0.0103*\text{gender}
 log(P(\text{college}=1)_i) = \alpha + \beta(\text{gender}_i)
 \]</span></p>
 </section>
-<section id="estimate-in-r-3" class="level4">
-<h4 class="anchored" data-anchor-id="estimate-in-r-3">Estimate in R</h4>
+<section id="estimate-in-r-4" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-4">Estimate in R</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>RR3 <span class="ot">&lt;-</span> <span class="fu">glm</span>(college <span class="sc">~</span> gender,</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> collegeeduc,</span>

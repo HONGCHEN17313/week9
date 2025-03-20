@@ -8,7 +8,7 @@ editor: visual
 
 ## Homework 9
 
-Two different binary outcomes.  
+Two different binary outcomes.
 
 ```{r}
 #| message: FALSE
@@ -22,76 +22,79 @@ library(gssr)
 
 ## Binary Outcomes 1
 
-Does having a college degree affect the age of first birth? We define late first birth as having a first child at age 30 or older. First, let’s create a dataset with binary variables for education and late birth.
+Does having a high school degree affect the age of first birth? We define late first birth as having a first child at age 30 or older. First, let’s create a dataset with binary variables for education and late birth.
 
 ```{r}
 gss2018 <- gss_get_yr(2018)
 firstkid <- gss2018 |>
   select(agekdbrn, educ) |>
   mutate(latebirth = if_else(agekdbrn >= 30 , 1, 0),
-         college = if_else(educ >= 12, 1, 0)) |>
+         degree = if_else(educ >= 12, 1, 0)) |>
   drop_na()
 ```
 
-Outcome: late first birth(Yes=1 / No=0) 
+Outcome: late first birth(Yes=1 / No=0)
 
-Predictor: having college degree(Yes=1 / No=0)
+Predictor: having high school degree(Yes=1 / No=0)
 
 ```{r}
-table(firstkid$college, firstkid$latebirth)
+table(firstkid$degree, firstkid$latebirth)
 ```
-P(latebirth|college) = 292/(1128+292) = 0.2056
-P(latebirth|noncollege) = 20/(225+20) = 0.0816
+
+P(latebirth\|degree) = 292/(1128+292) = 0.2056 P(latebirth\|nondegree) = 20/(225+20) = 0.0816
 
 ### Difference in Probability Regression
-Difference in Probability = P(latebirth|college) - P(latebirth|noncollege) = 0.2056 - 0.0816 = 0.1240
+
+Difference in Probability = P(latebirth\|degree) - P(latebirth\|nondegree) = 0.2056 - 0.0816 = 0.1240
+
 
 #### Model
+
 $$
-P(\text{latebirth}=1)_i = \alpha + \beta(\text{college}_i)
-$$
+P(\text{latebirth}=1)_i = \alpha + \beta(\text{degree}_i)
+$$ \
+
 #### Estimate in R
 
 ```{r}
-DP <- glm(latebirth ~ college,
+DP <- glm(latebirth ~ degree,
           data = firstkid,
           family = binomial(link = "identity")) #this is for calculating the difference of probability of two groups
 summary(DP)
 ```
 
-
 $$
-P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
-$$ 
-The estimated effect of college on late birth is 0.1240, meaning that having college degree increases the probability of late first birth by 12.4 percentage points.
+P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{degree}
+$$ The estimated effect of high school on late birth is 0.1240, meaning that having high school degree increases the probability of late first birth by 12.4 percentage points.
 
 #### Confidence Interval
 
-We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = 0.1240 +/- 1.96* 0.02052 = (0.0838, 0.1642). 95% probability that the confidence interval contains true population effect. 
+We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = 0.1240 +/- 1.96\* 0.02052 = (0.0838, 0.1642). 95% probability that the confidence interval contains true population effect.
 
-### Risk Ratio Regression Risk ratio 
+### Risk Ratio Regression Risk ratio
+
 $$
-RR = \frac{P(latebirth=1 | college=1)} {P(latebirth=1|college=0)}
-$$ 
-RR = 0.2056/0.0816 = 2.52
+RR = \frac{P(latebirth=1 | degree=1)} {P(latebirth=1|degree=0)}
+$$ RR = 0.2056/0.0816 = 2.52
 
 #### Model
-$$
-log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{college}_i)
-$$
 
+$$
+log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{degree}_i)
+$$
 
 #### Estimate in R
+
 ```{r}
-RR <- glm(latebirth ~ college,
+RR <- glm(latebirth ~ degree,
           data = firstkid,
           family = binomial(link = "log"))
 summary(RR)
 ```
 
 $$
-log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
-$$ 
+log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*degree
+$$
 
 #### Risk Ratio
 
@@ -99,16 +102,15 @@ $$
 exp(0.9239)
 ```
 
-People with college degree are 2.52 times more likely to have late first birth compared to people with non-college degree.
+People with high school degree are 2.52 times more likely to have late first birth compared to people without high school degree.
 
 #### Confidence Intervals
 
-We pick 95% confidence interval. Standard error = 0.02052. Confidence interval = 0.9239 +/- 1.96*0.2205 = (0.4917, 1.3561). Convert to risk ratio interval (1.6351, 3.8810).
-95% probability that the confidence interval contains true population effect. 
+We pick 95% confidence interval. Standard error = 0.02052. Confidence interval = 0.9239 +/- 1.96\*0.2205 = (0.4917, 1.3561). Convert to risk ratio interval (1.6351, 3.8810). 95% probability that the confidence interval contains true population effect.
 
 ## Binary Outcomes 2
 
-Do gender affect high school degree? 
+Do gender affect high school degree?
 
 ```{r}
 gendereduc <- gss2018 |>
@@ -118,25 +120,28 @@ gendereduc <- gss2018 |>
   drop_na()
 ```
 
-Outcome: having high school degree(Yes=1 / No=0) 
+Outcome: having high school degree(Yes=1 / No=0)
 
 Predictor:gender (Men=1 / Women=0)
 
 ```{r}
 table(gendereduc$gender, gendereduc$degree)
 ```
-P(degree|men) = 908/(143+908) = 0.8639
-P(degree|women) = 1135/(159+1135) = 0.8771
+
+P(degree\|men) = 908/(143+908) = 0.8639 P(degree\|women) = 1135/(159+1135) = 0.8771
 
 ### Difference in Probability Regression
-Difference in Probability = P(degree|men) - P(degree|women) = -0.0132
+
+Difference in Probability = P(degree\|men) - P(degree\|women) = -0.0132
 
 #### Model
+
 $$
 P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
 $$
 
 #### Estimate in R
+
 ```{r}
 DP2 <- glm(degree ~ gender,
           data = gendereduc,
@@ -146,14 +151,13 @@ summary(DP2)
 
 $$
 P(\text{college}=1) = 0.8771 - 0.0132*\text{gender}
-$$ 
-The estimated effect of gender on high school degree is -0.01319, meaning that being a man decreases the probability of having a high school degree by 1.32 percentage points.
+$$ The estimated effect of gender on high school degree is -0.01319, meaning that being a man decreases the probability of having a high school degree by 1.32 percentage points.
 
 #### Confidence Interval
 
-We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = -0.0132 +/- 1.96* 0.0140 = (-0.0406, 0.0142). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero. 
+We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = -0.0132 +/- 1.96\* 0.0140 = (-0.0406, 0.0142). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero.
 
-### Risk Ratio Regression 
+### Risk Ratio Regression
 
 RR = 0.8639/0.8771 = 0.9850
 
@@ -169,11 +173,11 @@ $$
 # I run into error with this code, suggesting that the probability might be zero.
 ```
 
-
 ## Binary Outcomes 3
+
 We change education level to college and recalculate
 
-Do gender affect college degree? 
+Do gender affect college degree?
 
 ```{r}
 collegeeduc <- gss2018 |>
@@ -183,25 +187,28 @@ collegeeduc <- gss2018 |>
   drop_na()
 ```
 
-Outcome: having college degree(Yes=1 / No=0) 
+Outcome: having college degree(Yes=1 / No=0)
 
 Predictor:gender (Men=1 / Women=0)
 
 ```{r}
 table(collegeeduc$gender, collegeeduc$college)
 ```
-P(college|men) = 336/(715+336) = 0.3197
-P(college|women) = 427/(867+427) = 0.3300
+
+P(college\|men) = 336/(715+336) = 0.3197 P(college\|women) = 427/(867+427) = 0.3300
 
 ### Difference in Probability Regression
-Difference in Probability = P(college|men) - P(college|women) = -0.0103
+
+Difference in Probability = P(college\|men) - P(college\|women) = -0.0103
 
 #### Model
+
 $$
 P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
 $$
 
 #### Estimate in R
+
 ```{r}
 DP3 <- glm(college ~ gender,
           data = collegeeduc,
@@ -211,23 +218,24 @@ summary(DP3)
 
 $$
 P(\text{college}=1) = 0.3300 - 0.0103*\text{gender}
-$$ 
-The estimated effect of gender on college degree is -0.0103, meaning that being a man decreases the probability of having a college degree by 1.03 percentage points.
+$$ The estimated effect of gender on college degree is -0.0103, meaning that being a man decreases the probability of having a college degree by 1.03 percentage points.
 
 #### Confidence Interval
 
-We pick 95% confidence interval. Standard error = 0.0194 Confidence interval = -0.0103 +/- 1.96* 0.0194 = (-0.0483, 0.0277). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero. 
+We pick 95% confidence interval. Standard error = 0.0194 Confidence interval = -0.0103 +/- 1.96\* 0.0194 = (-0.0483, 0.0277). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero.
 
 ### Risk Ratio Regression
 
 RR = 0.3197/0.3300 = 0.9688
 
 #### Model
+
 $$
 log(P(\text{college}=1)_i) = \alpha + \beta(\text{gender}_i)
 $$
 
 #### Estimate in R
+
 ```{r}
 RR3 <- glm(college ~ gender,
           data = collegeeduc,
@@ -249,5 +257,4 @@ Men are 0.97 times likely to have college degree compared to women.
 
 #### Confidence Intervals
 
-We pick 95% confidence interval. Standard error = 0.0600. Confidence interval = -0.03168 +/- 1.96*0.05995 = (-0.1492, 0.0858). Convert to risk ratio interval (0.8614, 1.0896).
-95% probability that the confidence interval contains true population effect; 95% the true risk ratio sets with (0.8614, 1.0896).
+We pick 95% confidence interval. Standard error = 0.0600. Confidence interval = -0.03168 +/- 1.96\*0.05995 = (-0.1492, 0.0858). Convert to risk ratio interval (0.8614, 1.0896). 95% probability that the confidence interval contains true population effect; 95% the true risk ratio sets with (0.8614, 1.0896).
