@@ -1,0 +1,154 @@
+---
+title: "Week 9"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Homework 9
+
+Two different binary outcomes.  
+
+```{r}
+#| message: FALSE
+#| warning: false
+#| cashe: false
+#| echo: false
+
+library(tidyverse)
+library(gssr)
+```
+
+## Binary Outcomes 1
+
+Does having a college degree affect late first birth age? We define late first birth as people have their first kid at age 30 or above 30. First, Let's create a dataset with binary variables of education and late birth.
+
+```{r}
+gss2018 <- gss_get_yr(2018)
+firstkid <- gss2018 |>
+  select(agekdbrn, educ) |>
+  mutate(latebirth = if_else(agekdbrn >= 30 , 1, 0),
+         college = if_else(educ >= 12, 1, 0)) |>
+  drop_na()
+```
+
+Outcome: late first birth(Yes=1 / No=0) Predictor: having college degree(Yes=1 / No=0)
+
+```{r}
+table(firstkid$college, firstkid$latebirth)
+```
+
+### Difference in Probability Regression
+
+$$
+P(\text{latebirth}=1)_i = \alpha + \beta(\text{college}_i)
+$$
+
+```{r}
+DP <- glm(latebirth ~ college,
+          data = firstkid,
+          family = binomial(link = "identity")) #this is for calculating the difference of probability of two groups
+summary(DP)
+```
+
+$$
+P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
+$$ 
+The estimated effect of college on late birth is 0.124, meaning that having college degree increases the probability of late first birth by 12.4 percentage points.
+
+#### Confidence Interval
+
+We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = 0.1240 +/- 1.96\* 0.02052 = (0.0838, 0.1642). 95% probability that the confidence interval contains true population effect. 
+
+### Risk Ratio Regression Risk ratio 
+$$
+RR = \frac{P(latebirth=1 | college=1)} {P(latebirth=1|college=0)}
+$$ 
+$$
+log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{college}_i)
+$$
+
+```{r}
+RR <- glm(latebirth ~ college,
+          data = firstkid,
+          family = binomial(link = "log"))
+summary(RR)
+```
+
+$$
+log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
+$$ Risk Ratio
+
+```{r}
+exp(0.9239)
+```
+
+People with college degree are 2.5 times more likely to have late first birth compared to people with non-college degree.
+
+#### Confidence Intervals
+
+We pick 95% confidence interval. Standard error = 0.02052. Confidence interval = 0.9239 +/- 1.96*0.2205 = (0.4917, 1.3561).
+95% probability that the confidence interval contains true population effect. 
+
+## Binary Outcomes 2
+
+Do gender affect college degree? 
+
+```{r}
+gendereduc <- gss2018 |>
+  select(sex, educ) |>
+  mutate(gender = if_else(sex == 1 , 1, 0),
+         college = if_else(educ >= 12, 1, 0)) |>
+  drop_na()
+```
+
+Outcome: having college degree(Yes=1 / No=0) Predictor:gender (Men=1 / Women=0)
+
+```{r}
+table(gendereduc$gender, gendereduc$college)
+```
+
+### Difference in Probability Regression
+
+$$
+P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
+$$
+
+```{r}
+DP2 <- glm(college ~ gender,
+          data = gendereduc,
+          family = binomial(link = "identity")) 
+summary(DP2)
+```
+
+$$
+P(\text{college}=1) = 0.8771 - 0.0132*\text{gender}
+$$ 
+The estimated effect of gender on college degree is -0.01319, meaning that being a man decreases the probability of having a college degree by 1.32 percentage points.
+
+#### Confidence Interval
+
+We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = -0.0132 +/- 1.96* 0.0140 = (-0.0406, 0.0142). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero. 
+
+### Risk Ratio Regression Risk ratio 
+
+$$
+log(P(\text{college}=1)_i) = \alpha + \beta(\text{gender}_i)
+$$
+
+```{r}
+# RR2 <- glm(college ~ gender,
+          # data = gendereduc,
+          # family = binomial(link = "log"))
+# summary(RR2)
+# I run into error with this code, suggesting that the probability might be zero.
+```
+
+
+
+
+
+
+
+
