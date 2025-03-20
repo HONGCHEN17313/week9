@@ -3246,7 +3246,7 @@ window.Quarto = {
 </section>
 <section id="binary-outcomes-1" class="level2">
 <h2 class="anchored" data-anchor-id="binary-outcomes-1">Binary Outcomes 1</h2>
-<p>Does having a college degree affect late first birth age? We define late first birth as people have their first kid at age 30 or above 30. First, Let’s create a dataset with binary variables of education and late birth.</p>
+<p>Does having a college degree affect the age of first birth? We define late first birth as having a first child at age 30 or older. First, let’s create a dataset with binary variables for education and late birth.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>gss2018 <span class="ot">&lt;-</span> <span class="fu">gss_get_yr</span>(<span class="dv">2018</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -3258,7 +3258,8 @@ window.Quarto = {
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">college =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">12</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Outcome: late first birth(Yes=1 / No=0) Predictor: having college degree(Yes=1 / No=0)</p>
+<p>Outcome: late first birth(Yes=1 / No=0)</p>
+<p>Predictor: having college degree(Yes=1 / No=0)</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(firstkid<span class="sc">$</span>college, firstkid<span class="sc">$</span>latebirth)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -3268,11 +3269,15 @@ window.Quarto = {
   1 1128  292</code></pre>
 </div>
 </div>
+<p>P(latebirth|college) = 292/(1128+292) = 0.2056 P(latebirth|noncollege) = 20/(225+20) = 0.0816</p>
 <section id="difference-in-probability-regression" class="level3">
 <h3 class="anchored" data-anchor-id="difference-in-probability-regression">Difference in Probability Regression</h3>
+<p>Difference in Probability = P(latebirth|college) - P(latebirth|noncollege) = 0.2056 - 0.0816 = 0.1240</p>
+<section id="model" class="level4">
+<h4 class="anchored" data-anchor-id="model">Model</h4>
 <p><span class="math display">\[
 P(\text{latebirth}=1)_i = \alpha + \beta(\text{college}_i)
-\]</span></p>
+\]</span> #### Estimate in R</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>DP <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> college,</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> firstkid,</span>
@@ -3302,7 +3307,8 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 <p><span class="math display">\[
 P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
-\]</span> The estimated effect of college on late birth is 0.124, meaning that having college degree increases the probability of late first birth by 12.4 percentage points.</p>
+\]</span> The estimated effect of college on late birth is 0.1240, meaning that having college degree increases the probability of late first birth by 12.4 percentage points.</p>
+</section>
 <section id="confidence-interval" class="level4">
 <h4 class="anchored" data-anchor-id="confidence-interval">Confidence Interval</h4>
 <p>We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = 0.1240 +/- 1.96* 0.02052 = (0.0838, 0.1642). 95% probability that the confidence interval contains true population effect.</p>
@@ -3312,9 +3318,15 @@ P(\text{latebirth}=1) = 0.0816 + 0.1240*\text{college}
 <h3 class="anchored" data-anchor-id="risk-ratio-regression-risk-ratio">Risk Ratio Regression Risk ratio</h3>
 <p><span class="math display">\[
 RR = \frac{P(latebirth=1 | college=1)} {P(latebirth=1|college=0)}
-\]</span> <span class="math display">\[
+\]</span> RR = 0.2056/0.0816 = 2.52</p>
+<section id="model-1" class="level4">
+<h4 class="anchored" data-anchor-id="model-1">Model</h4>
+<p><span class="math display">\[
 log(P(\text{latebirth}=1)_i) = \alpha + \beta(\text{college}_i)
 \]</span></p>
+</section>
+<section id="estimate-in-r" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r">Estimate in R</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>RR <span class="ot">&lt;-</span> <span class="fu">glm</span>(latebirth <span class="sc">~</span> college,</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> firstkid,</span>
@@ -3344,33 +3356,38 @@ Number of Fisher Scoring iterations: 6</code></pre>
 </div>
 <p><span class="math display">\[
 log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
-\]</span> Risk Ratio</p>
+\]</span></p>
+</section>
+<section id="risk-ratio" class="level4">
+<h4 class="anchored" data-anchor-id="risk-ratio">Risk Ratio</h4>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="fl">0.9239</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2.519096</code></pre>
 </div>
 </div>
-<p>People with college degree are 2.5 times more likely to have late first birth compared to people with non-college degree.</p>
+<p>People with college degree are 2.52 times more likely to have late first birth compared to people with non-college degree.</p>
+</section>
 <section id="confidence-intervals" class="level4">
 <h4 class="anchored" data-anchor-id="confidence-intervals">Confidence Intervals</h4>
-<p>We pick 95% confidence interval. Standard error = 0.02052. Confidence interval = 0.9239 +/- 1.96*0.2205 = (0.4917, 1.3561). 95% probability that the confidence interval contains true population effect.</p>
+<p>We pick 95% confidence interval. Standard error = 0.02052. Confidence interval = 0.9239 +/- 1.96*0.2205 = (0.4917, 1.3561). Convert to risk ratio interval (1.6351, 3.8810). 95% probability that the confidence interval contains true population effect.</p>
 </section>
 </section>
 </section>
 <section id="binary-outcomes-2" class="level2">
 <h2 class="anchored" data-anchor-id="binary-outcomes-2">Binary Outcomes 2</h2>
-<p>Do gender affect college degree?</p>
+<p>Do gender affect high school degree?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>gendereduc <span class="ot">&lt;-</span> gss2018 <span class="sc">|&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(sex, educ) <span class="sc">|&gt;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gender =</span> <span class="fu">if_else</span>(sex <span class="sc">==</span> <span class="dv">1</span> , <span class="dv">1</span>, <span class="dv">0</span>),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">college =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">12</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">degree =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">12</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Outcome: having college degree(Yes=1 / No=0) Predictor:gender (Men=1 / Women=0)</p>
+<p>Outcome: having high school degree(Yes=1 / No=0)</p>
+<p>Predictor:gender (Men=1 / Women=0)</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(gendereduc<span class="sc">$</span>gender, gendereduc<span class="sc">$</span>college)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(gendereduc<span class="sc">$</span>gender, gendereduc<span class="sc">$</span>degree)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   
        0    1
@@ -3378,20 +3395,27 @@ log(P(\text{latebirth}=1)) = -2.5055 + 0.9239*college
   1  143  908</code></pre>
 </div>
 </div>
+<p>P(degree|men) = 908/(143+908) = 0.8639 P(degree|women) = 1135/(159+1135) = 0.8771</p>
 <section id="difference-in-probability-regression-1" class="level3">
 <h3 class="anchored" data-anchor-id="difference-in-probability-regression-1">Difference in Probability Regression</h3>
+<p>Difference in Probability = P(degree|men) - P(degree|women) = -0.0132</p>
+<section id="model-2" class="level4">
+<h4 class="anchored" data-anchor-id="model-2">Model</h4>
 <p><span class="math display">\[
 P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
 \]</span></p>
+</section>
+<section id="estimate-in-r-1" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-1">Estimate in R</h4>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>DP2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(college <span class="sc">~</span> gender,</span>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>DP2 <span class="ot">&lt;-</span> <span class="fu">glm</span>(degree <span class="sc">~</span> gender,</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> gendereduc,</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>)) </span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(DP2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
-glm(formula = college ~ gender, family = binomial(link = &quot;identity&quot;), 
+glm(formula = degree ~ gender, family = binomial(link = &quot;identity&quot;), 
     data = gendereduc)
 
 Coefficients:
@@ -3412,24 +3436,154 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 <p><span class="math display">\[
 P(\text{college}=1) = 0.8771 - 0.0132*\text{gender}
-\]</span> The estimated effect of gender on college degree is -0.01319, meaning that being a man decreases the probability of having a college degree by 1.32 percentage points.</p>
+\]</span> The estimated effect of gender on high school degree is -0.01319, meaning that being a man decreases the probability of having a high school degree by 1.32 percentage points.</p>
+</section>
 <section id="confidence-interval-1" class="level4">
 <h4 class="anchored" data-anchor-id="confidence-interval-1">Confidence Interval</h4>
 <p>We pick 95% confidence interval. Standard error = 0.02052 Confidence interval = -0.0132 +/- 1.96* 0.0140 = (-0.0406, 0.0142). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero.</p>
 </section>
 </section>
-<section id="risk-ratio-regression-risk-ratio-1" class="level3">
-<h3 class="anchored" data-anchor-id="risk-ratio-regression-risk-ratio-1">Risk Ratio Regression Risk ratio</h3>
+<section id="risk-ratio-regression" class="level3">
+<h3 class="anchored" data-anchor-id="risk-ratio-regression">Risk Ratio Regression</h3>
+<p>RR = 0.8639/0.8771 = 0.9850</p>
 <p><span class="math display">\[
-log(P(\text{college}=1)_i) = \alpha + \beta(\text{gender}_i)
+log(P(\text{degree}=1)_i) = \alpha + \beta(\text{gender}_i)
 \]</span></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># RR2 &lt;- glm(college ~ gender,</span></span>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># RR2 &lt;- glm(degree ~ gender,</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>          <span class="co"># data = gendereduc,</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>          <span class="co"># family = binomial(link = &quot;log&quot;))</span></span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(RR2)</span></span>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># I run into error with this code, suggesting that the probability might be zero.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+</section>
+<section id="binary-outcomes-3" class="level2">
+<h2 class="anchored" data-anchor-id="binary-outcomes-3">Binary Outcomes 3</h2>
+<p>We change education level to college and recalculate</p>
+<p>Do gender affect college degree?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>collegeeduc <span class="ot">&lt;-</span> gss2018 <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(sex, educ) <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gender =</span> <span class="fu">if_else</span>(sex <span class="sc">==</span> <span class="dv">1</span> , <span class="dv">1</span>, <span class="dv">0</span>),</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">college =</span> <span class="fu">if_else</span>(educ <span class="sc">&gt;=</span> <span class="dv">16</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Outcome: having college degree(Yes=1 / No=0)</p>
+<p>Predictor:gender (Men=1 / Women=0)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(collegeeduc<span class="sc">$</span>gender, collegeeduc<span class="sc">$</span>college)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   
+      0   1
+  0 867 427
+  1 715 336</code></pre>
+</div>
+</div>
+<p>P(college|men) = 336/(715+336) = 0.3197 P(college|women) = 427/(867+427) = 0.3300</p>
+<section id="difference-in-probability-regression-2" class="level3">
+<h3 class="anchored" data-anchor-id="difference-in-probability-regression-2">Difference in Probability Regression</h3>
+<p>Difference in Probability = P(college|men) - P(college|women) = -0.0103</p>
+<section id="model-3" class="level4">
+<h4 class="anchored" data-anchor-id="model-3">Model</h4>
+<p><span class="math display">\[
+P(\text{college}=1)_i = \alpha + \beta(\text{gender}_i)
+\]</span></p>
+</section>
+<section id="estimate-in-r-2" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-2">Estimate in R</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>DP3 <span class="ot">&lt;-</span> <span class="fu">glm</span>(college <span class="sc">~</span> gender,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> collegeeduc,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>)) </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(DP3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = college ~ gender, family = binomial(link = &quot;identity&quot;), 
+    data = collegeeduc)
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)  0.32998    0.01307  25.245   &lt;2e-16 ***
+gender      -0.01029    0.01944  -0.529    0.597    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 2958.7  on 2344  degrees of freedom
+Residual deviance: 2958.4  on 2343  degrees of freedom
+AIC: 2962.4
+
+Number of Fisher Scoring iterations: 2</code></pre>
+</div>
+</div>
+<p><span class="math display">\[
+P(\text{college}=1) = 0.3300 - 0.0103*\text{gender}
+\]</span> The estimated effect of gender on college degree is -0.0103, meaning that being a man decreases the probability of having a college degree by 1.03 percentage points.</p>
+</section>
+<section id="confidence-interval-2" class="level4">
+<h4 class="anchored" data-anchor-id="confidence-interval-2">Confidence Interval</h4>
+<p>We pick 95% confidence interval. Standard error = 0.0194 Confidence interval = -0.0103 +/- 1.96* 0.0194 = (-0.0483, 0.0277). 95% probability that the confidence interval contains true population effect. Since this confidence interval contains 0, the true effect could be zero.</p>
+</section>
+</section>
+<section id="risk-ratio-regression-1" class="level3">
+<h3 class="anchored" data-anchor-id="risk-ratio-regression-1">Risk Ratio Regression</h3>
+<p>RR = 0.3197/0.3300 = 0.9688</p>
+<section id="model-4" class="level4">
+<h4 class="anchored" data-anchor-id="model-4">Model</h4>
+<p><span class="math display">\[
+log(P(\text{college}=1)_i) = \alpha + \beta(\text{gender}_i)
+\]</span></p>
+</section>
+<section id="estimate-in-r-3" class="level4">
+<h4 class="anchored" data-anchor-id="estimate-in-r-3">Estimate in R</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>RR3 <span class="ot">&lt;-</span> <span class="fu">glm</span>(college <span class="sc">~</span> gender,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>          <span class="at">data =</span> collegeeduc,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;log&quot;</span>))</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(RR3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = college ~ gender, family = binomial(link = &quot;log&quot;), 
+    data = collegeeduc)
+
+Coefficients:
+            Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept) -1.10871    0.03961 -27.989   &lt;2e-16 ***
+gender      -0.03168    0.05995  -0.528    0.597    
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 2958.7  on 2344  degrees of freedom
+Residual deviance: 2958.4  on 2343  degrees of freedom
+AIC: 2962.4
+
+Number of Fisher Scoring iterations: 6</code></pre>
+</div>
+</div>
+<p><span class="math display">\[
+log(P(\text{college}=1)_i) = -1.1087 - 0.0317(\text{gender}_i)
+\]</span></p>
+</section>
+<section id="risk-ratio-1" class="level4">
+<h4 class="anchored" data-anchor-id="risk-ratio-1">Risk Ratio</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">exp</span>(<span class="sc">-</span><span class="fl">0.0317</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.9687972</code></pre>
+</div>
+</div>
+<p>Men are 0.97 times likely to have college degree compared to women.</p>
+</section>
+<section id="confidence-intervals-1" class="level4">
+<h4 class="anchored" data-anchor-id="confidence-intervals-1">Confidence Intervals</h4>
+<p>We pick 95% confidence interval. Standard error = 0.0600. Confidence interval = -0.03168 +/- 1.96*0.05995 = (-0.1492, 0.0858). Convert to risk ratio interval (0.8614, 1.0896). 95% probability that the confidence interval contains true population effect; 95% the true risk ratio sets with (0.8614, 1.0896).</p>
+</section>
 </section>
 </section>
 
